@@ -1,6 +1,7 @@
 package Energeenot.AuthService.controller;
 
 import Energeenot.AuthService.dto.AuthRequest;
+import Energeenot.AuthService.dto.TokenResponse;
 import Energeenot.AuthService.exception.UserAlreadyExistsException;
 import Energeenot.AuthService.service.AuthService;
 import jakarta.validation.Valid;
@@ -18,10 +19,15 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@Valid @RequestBody AuthRequest authRequest) {
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody AuthRequest authRequest) {
         log.info("Login request with email: {}", authRequest.getEmail());
-        String token = authService.login(authRequest);
-        return ResponseEntity.ok(token);
+        return ResponseEntity.ok(authService.login(authRequest));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<TokenResponse> refresh(@RequestBody String refreshToken) {
+        log.info("Refresh request with refresh token: {}", refreshToken);
+        return ResponseEntity.ok(authService.refresh(refreshToken));
     }
 
     @PostMapping("/registration")
