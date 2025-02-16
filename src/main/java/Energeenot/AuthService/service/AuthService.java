@@ -2,7 +2,9 @@ package Energeenot.AuthService.service;
 
 import Energeenot.AuthService.dto.AuthRequest;
 import Energeenot.AuthService.dto.TokenResponse;
+import Energeenot.AuthService.exception.InvalidRefreshTokenException;
 import Energeenot.AuthService.exception.UserAlreadyExistsException;
+import Energeenot.AuthService.exception.UserNotFoundException;
 import Energeenot.AuthService.models.User;
 import Energeenot.AuthService.models.enums.Role;
 import Energeenot.AuthService.repository.UserRepository;
@@ -24,10 +26,11 @@ public class AuthService {
     public TokenResponse login(AuthRequest authRequest) {
         log.info("try to login with email: {}", authRequest.getEmail());
         User user = userRepository.findByEmail(authRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with with email: '%s' not found",
+                        authRequest.getEmail())));
 
         if (!passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Wrong password");
+            throw new WrongThreadException("Wrong password");
         }
 
         String accessToken = jwtProvider.generateToken(authRequest.getEmail(), user.getRole());
@@ -44,10 +47,11 @@ public class AuthService {
         log.info("refreshing token for user with email: {}", email);
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(String.format("User with email: '%s' not found",
+                email)));
 
         if (!passwordEncoder.matches(refreshToken, user.getRefreshToken())){
-            throw new RuntimeException("Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
         String accessToken = jwtProvider.generateToken(email, user.getRole());
