@@ -2,13 +2,15 @@ package Energeenot.AuthService.controller;
 
 import Energeenot.AuthService.dto.AuthRequest;
 import Energeenot.AuthService.dto.TokenResponse;
-import Energeenot.AuthService.exception.UserAlreadyExistsException;
 import Energeenot.AuthService.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -35,11 +37,5 @@ public class AuthController {
         log.info("Registration request with email: {}", authRequest.getEmail());
         String message = authService.registration(authRequest);
         return ResponseEntity.ok(message);
-    }
-
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<String> handleUserAlreadyExists(UserAlreadyExistsException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
