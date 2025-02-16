@@ -19,12 +19,22 @@ public class JwtProvider {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    @Value("${jwt.refreshExpiration}")
+    private long refreshExpiration;
+
     public String generateToken(String email, Role role) {
         log.info("Generating JWT, email: {}, role: {}", email, role);
         return JWT.create()
                 .withSubject(email)
                 .withClaim("role", role.name())
                 .withExpiresAt(new Date(System.currentTimeMillis() + expiration))
+                .sign(Algorithm.HMAC256(secret));
+    }
+    public String generateRefreshToken(String email) {
+        log.info("Generating refresh JWT, email: {}", email);
+        return JWT.create()
+                .withSubject(email)
+                .withExpiresAt(new Date(System.currentTimeMillis() + refreshExpiration))
                 .sign(Algorithm.HMAC256(secret));
     }
 
