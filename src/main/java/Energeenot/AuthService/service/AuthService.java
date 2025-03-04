@@ -1,6 +1,7 @@
 package Energeenot.AuthService.service;
 
 import Energeenot.AuthService.dto.AuthRequest;
+import Energeenot.AuthService.dto.RegistrationResponse;
 import Energeenot.AuthService.dto.TokenResponse;
 import Energeenot.AuthService.exception.InvalidRefreshTokenException;
 import Energeenot.AuthService.exception.UserAlreadyExistsException;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -33,7 +36,7 @@ public class AuthService {
             throw new WrongThreadException("Wrong password");
         }
 
-        String accessToken = jwtProvider.generateToken(authRequest.getEmail(), user.getRole());
+        String accessToken = jwtProvider.generateToken(authRequest.getEmail(), user.getRole(), user.getUuid());
         String refreshToken = jwtProvider.generateRefreshToken(authRequest.getEmail());
 
         user.setRefreshToken(passwordEncoder.encode(refreshToken));
@@ -54,27 +57,28 @@ public class AuthService {
             throw new InvalidRefreshTokenException("Invalid refresh token");
         }
 
-        String accessToken = jwtProvider.generateToken(email, user.getRole());
+        String accessToken = jwtProvider.generateToken(email, user.getRole(), user.getUuid());
         String newRefreshToken = jwtProvider.generateRefreshToken(email);
 
         user.setRefreshToken(passwordEncoder.encode(refreshToken));
         userRepository.save(user);
-
         return new TokenResponse(accessToken, newRefreshToken);
     }
 
-    public String registration(AuthRequest authRequest) {
+    public RegistrationResponse registration(AuthRequest authRequest) {
         log.info("Registering user with email: {}", authRequest.getEmail());
         if (userRepository.findByEmail(authRequest.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException(String.format("User with email: '%s' already exists",
                     authRequest.getEmail()));
         }
         User user = new User();
+        String uuid  = UUID.randomUUID().toString();
+        user.setUuid(uuid);
         user.setEmail(authRequest.getEmail());
         user.setPassword(passwordEncoder.encode(authRequest.getPassword()));
         user.setRole(Role.ROLE_STUDENT);
         userRepository.save(user);
-        return "Registered successfully";
+        return new RegistrationResponse(uuid, user.getRole().toString());
     }
 
 }
