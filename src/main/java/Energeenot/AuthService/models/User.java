@@ -31,10 +31,12 @@ public class User {
     private String password;
 
     @Enumerated(EnumType.STRING)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "role")
     private Role role;
 
     @Column(name = "refresh_token")
     private String refreshToken;
+
+    @Column(name = "uuid")
+    private String uuid;
 }
