@@ -22,14 +22,17 @@ public class JwtProvider {
     @Value("${jwt.refreshExpiration}")
     private long refreshExpiration;
 
-    public String generateToken(String email, Role role) {
+    public String generateToken(String email, Role role, String uuid) {
         log.info("Generating JWT, email: {}, role: {}", email, role);
         return JWT.create()
+                .withIssuer("auth-service")
                 .withSubject(email)
                 .withClaim("role", role.name())
+                .withClaim("uuid", uuid)
                 .withExpiresAt(new Date(System.currentTimeMillis() + expiration))
                 .sign(Algorithm.HMAC256(secret));
     }
+
     public String generateRefreshToken(String email) {
         log.info("Generating refresh JWT, email: {}", email);
         return JWT.create()
